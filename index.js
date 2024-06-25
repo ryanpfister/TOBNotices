@@ -24,7 +24,12 @@ app.post('/webhooks/mailgun', (req, res) => {
   res.status(200).send('Received email from Mailgun');
 });
 
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+  });
+  
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-});
+});+
+
