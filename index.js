@@ -1,13 +1,38 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs').promises; // Using promises-based fs module
 
 const app = express();
 const port = 80;
+const noticesFile = 'notices.json'; // File to store notices
 
-let notices = []; // Store notices in memory
+let notices = []; // Array to store notices in memory
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
+
+// Function to load notices from file
+async function loadNotices() {
+  try {
+    const data = await fs.readFile(noticesFile, 'utf8');
+    notices = JSON.parse(data);
+  } catch (error) {
+    console.error('Error loading notices:', error);
+  }
+}
+
+// Function to save notices to file
+async function saveNotices() {
+  try {
+    await fs.writeFile(noticesFile, JSON.stringify(notices, null, 2), 'utf8');
+    console.log('Notices saved successfully.');
+  } catch (error) {
+    console.error('Error saving notices:', error);
+  }
+}
+
+// Load notices initially when server starts
+loadNotices();
 
 // Route to handle incoming webhook from Mailgun
 app.post('/webhooks/mailgun', (req, res) => {
@@ -22,6 +47,9 @@ app.post('/webhooks/mailgun', (req, res) => {
 
   // Example: Update notices in memory
   notices.push({ subject, body });
+
+  // Save notices to file after updating
+  saveNotices();
 
   // Respond with a 200 OK to acknowledge receipt
   res.status(200).send('Received email from Mailgun');
